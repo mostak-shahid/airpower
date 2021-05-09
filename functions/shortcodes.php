@@ -384,3 +384,53 @@ function mos_embed_func($atts = array(), $content = '') {
     return $html;
 }
 add_shortcode( 'mos-embed', 'mos_embed_func' );
+
+function showcase_gallery_func( $atts = array(), $content = '' ) {
+    $html= "";
+	$atts = shortcode_atts( array(
+		'class' => '',
+        'posts' => -1,
+	), $atts, 'showcase-gallery' );
+    $args = array(
+        'post_type' => 'project',
+        'posts_per_page'=>$atts['posts'],
+    );
+    ob_start();
+    $query = new WP_Query( $args );
+    if ( $query->have_posts() ) :
+    ?>
+        <div id="section-showcase" class="<?php echo $atts['class'] ?>"> 
+            <div class="select-wrapper row">           
+            <?php while ( $query->have_posts() ) : $query->the_post();?>
+                <?php if (has_post_thumbnail()) : ?>
+                
+                <div class="col-lg-4 mb-30 wow fadeInLeft">
+                    <div class="showcase-unit position-relative">
+                        <?php $image_alt = get_post_meta($image_id, '_wp_attachment_image_alt', TRUE); ?>
+                        <img src="<?php echo aq_resize(get_the_post_thumbnail_url($post_id),350,330,true) ?>" alt="<?php echo $image_alt?>" class="img-fluid img-showcase" width="350" height="330">
+                        <h4 class="showcase-title text-center smooth"><?php echo get_the_title($post_id)?></h4>
+<!--                        <a href="<?php //echo get_the_permalink($post_id)?>" class="hidden-link">Read More...</a>-->
+                        <a class="hidden-link fancybox" data-fancybox="images-<?php echo get_the_ID()?>" href="<?php echo get_the_post_thumbnail_url(get_the_ID(), 'full') ?>">Load More</a>
+                    </div>
+                    <?php 
+                    $gallery = carbon_get_post_meta( get_the_ID(), 'project_gallery' );
+                    if(sizeof($gallery)):
+                        foreach($gallery as $attachment_id) :
+                        ?>
+                            <a class="d-none fancybox" data-fancybox="images-<?php echo get_the_ID()?>" href="<?php echo wp_get_attachment_url( $attachment_id ) ?>">Load More</a>
+                        <?php 
+                        endforeach;
+                    endif;
+                    ?>
+                </div>
+                <?php endif;?>
+            <?php endwhile;?>                
+            </div>            
+        </div>
+    <?php        
+    endif;
+    wp_reset_postdata();
+    $html = ob_get_clean();
+    return $html;
+}
+add_shortcode( 'showcase-gallery', 'showcase_gallery_func' );
